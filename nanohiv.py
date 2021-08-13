@@ -12,7 +12,7 @@ def map(ref, fq, gap_open, f_out):
                         "-x",
                         "map-ont",
                         "-O", gap_open,
-                        "-E", gap_open/2,
+                        "-E", gap_open/2.0,
                         "-a",
                         fq], 
                         stdout=out
@@ -82,6 +82,7 @@ def generate_consensus(ref, fq, bam, fasta):
     )
     os.unlink(temp_name)
 
+@click.command()
 @click.option(
     '--reference',
      type=click.Path(exists=True, readable=True, resolve_path=True)
