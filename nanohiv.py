@@ -1,6 +1,7 @@
 import click
 
 import os
+import subprocess
 import sys
 import tempfile
 
@@ -11,8 +12,8 @@ def map(ref, fq, gap_open, f_out):
         subprocess.call(["minimap2",
                         "-x",
                         "map-ont",
-                        "-O", gap_open,
-                        "-E", gap_open/2.0,
+                        "-O", str(gap_open),
+                        "-E", str(gap_open/2.0),
                         "-a",
                         fq], 
                         stdout=out
@@ -37,7 +38,7 @@ def prepare_bam(sam, bam):
         temp2, temp_name2 = tempfile.mkstemp()
         subprocess.call(["samtools",
                         "sort",
-                        temp_name],
+                        temp_name1],
                         stdout=temp2
         )
         os.close(temp2)
@@ -46,7 +47,7 @@ def prepare_bam(sam, bam):
         subprocess.call(["samtools",
                         "index",
                         temp_name2],
-                        stdout=bam
+                        stdout=out
         )
 
         os.unlink(temp_name1)
@@ -56,7 +57,7 @@ def prepare_bam(sam, bam):
 # reference and fastq
 def generate_consensus(ref, fq, bam, fasta):
 
-    temp, temp_name = tempfile.mkstep()
+    temp, temp_name = tempfile.mkstemp()
     subprocess.call(["nanopolish",
                     "variants",
                     "--max-haplotypes",
@@ -74,12 +75,14 @@ def generate_consensus(ref, fq, bam, fasta):
                     stdout=temp
     )
     os.close(temp)
-    subprocess.call(["nanopolish",
-                     "vcf2fasta",
-                     "-g", ref,
-                     temp_name],
-                     fasta
-    )
+
+    with open(fasta, "w") as out:
+        subprocess.call(["nanopolish",
+                        "vcf2fasta",
+                        "-g", ref,
+                        temp_name],
+                        stdout=out
+        )
     os.unlink(temp_name)
 
 @click.command()
@@ -125,14 +128,14 @@ def nanohiv(reference, reads, output, standard_gap_penalty, lower_gap_penalty):
     consensus1, consensus1_name = tempfile.mkstemp()
     map(reference, reads, standard_gap_penalty, sam_name)
     prepare_bam(sam_name, bam_name)
-    generate_consensus(reference, reads, bam_name, consensus_1)
+    generate_consensus(reference, reads, bam_name, consensus1_name)
 
     # remap to consensus with lower gap penalty
     print("Remapping reads to consensus with lower gap penalty.")
     consensus2, consensus2_name = tempfile.mkstemp()
     map(consensus1_name, reads, lower_gap_penalty, sam_name)
     prepare_bam(sam_name, bam_name)
-    generate_consensus(consensus1_name, reads, bam_name, consensus_2)
+    generate_consensus(consensus1_name, reads, bam_name, consensus2_name)
 
     # final remapping to consensus
     print("Final remapping to consensus.")
