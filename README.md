@@ -2,7 +2,7 @@
 
 ## Installation
 
-There is no installation for NanoHIV - it can be invoked directly on the command line using Python 3.
+There is no installation for NanoHIV - it can be invoked directly on the command line using Python 3. Dependencies can be installed using `apt` or `yum`, e.g.:
 
 ```
 sudo apt install samtools nanopolish minimap2  
