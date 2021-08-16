@@ -107,7 +107,7 @@ def generate_consensus(ref, fq, bam, fasta):
 
 def nanohiv(reference, reads, output, standard_gap_penalty, lower_gap_penalty):
     """
-    Check consensus sequences for intactness.
+    Create an HIV consensus sequence from Oxford Nanopore data.
     """
 
     if reference is None:
