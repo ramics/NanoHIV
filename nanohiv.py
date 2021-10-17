@@ -1,19 +1,27 @@
 import click
-
+import math
 import os
 import subprocess
 import sys
 import tempfile
 
 # run minimap2 with nanopore settings
-def map(ref, fq, gap_open, f_out):
+def map(ref, fq, unlogged_gap_open, f_out):
+
+    # log the gap penalty divisor
+    gap_open = 4 - log(4/unlogged_gap_open)
+
+    if gap_open / 2.0 < 1:
+        gap_extend = 1
+    else:
+        gap_extend = gap_open/2.0
 
     with open(f_out, 'w') as out:
         subprocess.call(["minimap2",
                         "-x",
                         "map-ont",
                         "-O", str(gap_open),
-                        "-E", str(gap_open/2.0),
+                        "-E", str(gap_extend),
                         "-a",
                         fq], 
                         stdout=out
