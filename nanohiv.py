@@ -6,10 +6,7 @@ import sys
 import tempfile
 
 # run minimap2 with nanopore settings
-def map(ref, fq, unlogged_gap_open, f_out):
-
-    # log the gap penalty divisor
-    gap_open = 4 - log(4/unlogged_gap_open)
+def map(ref, fq, gap_open, f_out):
 
     if gap_open / 2.0 < 1:
         gap_extend = 1
@@ -110,7 +107,7 @@ def generate_consensus(ref, fq, bam, fasta):
     '--standard-gap-penalty', default=4
 )
 @click.option(
-    '--lower-gap-penalty', default=1
+    '--lower-gap-penalty', default=3
 )
 
 def nanohiv(reference, reads, output, standard_gap_penalty, lower_gap_penalty):
