@@ -5,9 +5,20 @@ import subprocess
 import sys
 import tempfile
 
+# make links between called bases and raw signal
+def index(fq, fast5):
+    print("Indexing...")
+    subprocess.call(["nanopolish", 
+                    "index",
+                    fq, 
+                    "-d",
+                    fast5]
+    )
+    print("done.")
+
 # run minimap2 with nanopore settings
 def map(ref, fq, gap_open, f_out):
-
+    print("Mapping...")
     if gap_open / 2.0 < 1:
         gap_extend = 1
     else:
@@ -20,16 +31,18 @@ def map(ref, fq, gap_open, f_out):
                         "-O", str(gap_open),
                         "-E", str(gap_extend),
                         "-a",
+                        ref,
                         fq], 
                         stdout=out
     )
+    print("done.")
 
 # take a minimap2 samfile, compress, sort and index it
 def prepare_bam(sam, bam):
-    
     with open(bam, 'w') as out:
 
         # compress
+        print("Compressing...")
         temp1, temp_name1 = tempfile.mkstemp()
         subprocess.call(["samtools",
                         "view",
@@ -40,23 +53,23 @@ def prepare_bam(sam, bam):
         os.close(temp1)
 
         # sort
-        temp2, temp_name2 = tempfile.mkstemp()
+        print("Sorting...")
         subprocess.call(["samtools",
                         "sort",
                         temp_name1],
-                        stdout=temp2
-        )
-        os.close(temp2)
-
-        # index
-        subprocess.call(["samtools",
-                        "index",
-                        temp_name2],
                         stdout=out
         )
-
         os.unlink(temp_name1)
-        os.unlink(temp_name2)
+
+    # index
+    print("Indexing...")
+    subprocess.call(["samtools",
+                    "index",
+                    "-b",
+                    bam]
+    )
+
+    print("done.")
 
 # generate consensus sequence from bam file,
 # reference and fastq
@@ -100,6 +113,10 @@ def generate_consensus(ref, fq, bam, fasta):
      type=click.Path(exists=True, readable=True, resolve_path=True)
 )
 @click.option(
+    '--fast5',
+    type=click.Path(exists=True, readable=True, resolve_path=True)
+)
+@click.option(
     '--output',
      type=click.Path(resolve_path=True)
 )
@@ -110,7 +127,7 @@ def generate_consensus(ref, fq, bam, fasta):
     '--lower-gap-penalty', default=3
 )
 
-def nanohiv(reference, reads, output, standard_gap_penalty, lower_gap_penalty):
+def nanohiv(reference, reads, fast5, output, standard_gap_penalty, lower_gap_penalty):
     """
     Create an HIV consensus sequence from Oxford Nanopore data.
     """
@@ -121,12 +138,19 @@ def nanohiv(reference, reads, output, standard_gap_penalty, lower_gap_penalty):
     if reads is None:
         raise ValueError('Need a fastq file --reads.')
     
+    if fast5 is None:
+        raise ValueError('Need a fast5 file --fast5.')
+    
     if output is None:
         raise ValueError('Need an --output file.')
 
     sam, sam_name = tempfile.mkstemp()
     bam, bam_name = tempfile.mkstemp()
     vcf, vcf_name = tempfile.mkstemp()
+
+    # index reads against fast5
+    print("Indexing reads against raw signal.")
+    index(reads, fast5)
 
     # generate a consensus
     print("Generating initial consensus.")
