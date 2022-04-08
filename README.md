@@ -12,7 +12,7 @@ sudo apt install python3 samtools nanopolish minimap2
 ## Usage
 
 ```
-Usage: nanohiv.py [OPTIONS]
+Usage: python nanohiv.py [OPTIONS]
 
   Create an HIV consensus sequence from Oxford Nanopore data.
 
