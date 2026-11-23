@@ -1,27 +1,26 @@
 # NanoHIV
 
-## Installation
+Build an HIV consensus sequence from Oxford Nanopore reads.
 
-There is no installation for NanoHIV - it can be invoked directly on the command line using Python 3. Dependencies can be installed using `apt` or `yum`, e.g.:
+NanoHIV maps reads to a reference, polishes a consensus against the raw signal, then remaps with a lower gap penalty so real indels survive. Built for sequencing the HIV proviral reservoir, and published in *Cells* (2021).
 
-```
-sudo apt install python3 samtools nanopolish minimap2  
+## Requirements
 
-```
-
-## Usage
+Python 3 with `click`, plus `minimap2`, `samtools` and `nanopolish`:
 
 ```
-Usage: python nanohiv.py [OPTIONS]
-
-  Create an HIV consensus sequence from Oxford Nanopore data.
-
-Options:
-  --reference PATH
-  --reads PATH
-  --fast5 PATH
-  --output PATH
-  --standard-gap-penalty INTEGER
-  --lower-gap-penalty INTEGER
-  --help                          Show this message and exit.
+sudo apt install python3 python3-click samtools nanopolish minimap2
 ```
+
+## Run
+
+A single script, run in place:
+
+```
+python nanohiv.py --reference ref.fasta --reads reads.fastq --fast5 fast5_dir --output consensus.fasta
+```
+
+| Option | Default | Purpose |
+|---|---|---|
+| `--standard-gap-penalty` | 4 | gap-open penalty for the first mapping |
+| `--lower-gap-penalty` | 3 | gap-open penalty for the remap |
